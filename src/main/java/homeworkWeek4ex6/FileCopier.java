@@ -5,15 +5,26 @@ package homeworkWeek4ex6;
 // Spróbuj skopiowaæ kilka du¿ych plików (>3GB). Spróbuj zaimplementowaæ ten problem u¿ywaj¹c jednego w¹tku i Java I/O (nie New I/O).
 // Jak zachowuje siê program?
 
+import javafx.concurrent.Task;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 
 public class FileCopier extends JFrame {
+
+    private JPanel progressPanel;
+    private JProgressBar progressBar;
+    private JLabel progressLabel;
+    private JPanel pathsPanel;
+    private JLabel fileChosen;
+    private JLabel destinationFolder;
+    private JButton copyButton;
+    private Task task;
+
 
     public FileCopier() throws HeadlessException {
         initialisation();
@@ -25,15 +36,15 @@ public class FileCopier extends JFrame {
         setTitle("Copy Machine");
         setSize(600, 150);
 
-        JPanel progressPanel = new JPanel();
-        JProgressBar progressBar = new JProgressBar();
+        progressPanel = new JPanel();
+        progressBar = new JProgressBar(0, 100);
         progressBar.setValue(0);
-        JLabel progressLabel = new JLabel("status: 0%");
+        progressLabel = new JLabel("status: 0%");
 
-        JPanel pathsPanel = new JPanel();
-        JLabel fileChosen = new JLabel("File: ");
-        JLabel destinationFolder = new JLabel("Destination: ");
-        JButton copyButton = new JButton("COPY");
+        pathsPanel = new JPanel();
+        fileChosen = new JLabel("File: ");
+        destinationFolder = new JLabel("Destination: ");
+        copyButton = new JButton("COPY");
 
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
@@ -77,15 +88,64 @@ public class FileCopier extends JFrame {
         copyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                File file = new File(fileChosen.getText());
-                File newFile = new File(destinationFolder.getText()+ "\\" + file.getName());
+
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        copyFileAndShowProgress();
+                    }
+                });
+                thread.start();
+
+
+
+
+                /*File srcFile = new File(fileChosen.getText());
+                File trgtFile = new File(destinationFolder.getText()+ "\\" + srcFile.getName());
                 try {
-                    Files.copy(file.toPath(), newFile.toPath());
+                    Files.copy(srcFile.toPath(), trgtFile.toPath());
                 } catch (IOException e1) {
                     e1.printStackTrace();
-                }
+                }*/
+
+
             }
         });
+
+    }
+    private synchronized void copyFileAndShowProgress( ){
+        File src = new File(fileChosen.getText());
+        File trgt = new File(destinationFolder.getText() + "\\" +src.getName());
+        try {
+            InputStream inputStream = new FileInputStream(src);
+            OutputStream outputStream = new FileOutputStream(trgt);
+
+            long inputSize = src.length();
+            progressBar.setMaximum((int) (inputSize));
+            progressBar.setValue(0);
+            long transferred = 0;
+            byte [] buff = new byte[1024];
+            int bytesRead = 0;
+
+            while((bytesRead = inputStream.read(buff)) > 0 ){
+                transferred += bytesRead;
+                progressBar.setValue((int)transferred);
+                double percentage = ((double)transferred/(double)inputSize)*100;
+                progressLabel.setText("status :" + (int)percentage + "%");
+                outputStream.write(buff, 0, bytesRead);
+
+
+
+
+            }
+            inputStream.close();
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
