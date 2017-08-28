@@ -39,7 +39,7 @@ public class FileCopier extends JFrame {
         progressPanel = new JPanel();
         progressBar = new JProgressBar(0, 100);
         progressBar.setValue(0);
-        progressLabel = new JLabel("status: 0%");
+        progressBar.setStringPainted(true);
 
         pathsPanel = new JPanel();
         fileChosen = new JLabel("File: ");
@@ -53,7 +53,7 @@ public class FileCopier extends JFrame {
 
         progressPanel.setLayout(new BoxLayout(progressPanel, BoxLayout.Y_AXIS));
         progressPanel.add(progressBar);
-        progressPanel.add(progressLabel);
+
         pathsPanel.setLayout(new BoxLayout(pathsPanel, BoxLayout.Y_AXIS));
         pathsPanel.add(fileChosen);
         pathsPanel.add(destinationFolder);
@@ -98,17 +98,6 @@ public class FileCopier extends JFrame {
                 thread.start();
 
 
-
-
-                /*File srcFile = new File(fileChosen.getText());
-                File trgtFile = new File(destinationFolder.getText()+ "\\" + srcFile.getName());
-                try {
-                    Files.copy(srcFile.toPath(), trgtFile.toPath());
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }*/
-
-
             }
         });
 
@@ -130,8 +119,7 @@ public class FileCopier extends JFrame {
             while((bytesRead = inputStream.read(buff)) > 0 ){
                 transferred += bytesRead;
                 progressBar.setValue((int)transferred);
-                double percentage = ((double)transferred/(double)inputSize)*100;
-                progressLabel.setText("status :" + (int)percentage + "%");
+
                 outputStream.write(buff, 0, bytesRead);
 
 
